@@ -3,8 +3,12 @@
 
 #include "udpclientcontroller.h"
 
+#include <QCheckBox>
 #include <QDateTime>
-#include <QHostAddress>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QSpinBox>
+#include <QTextEdit>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -51,19 +55,20 @@ void MainWindow::setupConnections_()
 
 void MainWindow::onSendOnceClicked_()
 {
-    clientController_->sendDatagram(createDatagram_(),
-                                    destinationAddress_(),
-                                    destinationPort_());
+    sendCurrentDatagram_();
 }
 
 //--------------------------------------------------------------------------
 
 void MainWindow::onStartClicked_()
 {
-    clientController_->startPeriodicSending(createDatagram_(),
-                                            destinationAddress_(),
-                                            destinationPort_(),
-                                            sendingIntervalMs_());
+    clientController_->startPeriodicSending(
+        [this]() {
+            return createDatagram_();
+        },
+        destinationAddress_(),
+        destinationPort_(),
+        sendingIntervalMs_());
 
     if (clientController_->isPeriodicSendingActive()) {
         setPeriodicSendingUiActive_(true);
@@ -121,7 +126,16 @@ QByteArray MainWindow::createDatagram_() const
                 .toUtf8();
     }
 
-    return ui->messageLineEdit->text().toUtf8();
+    return ui->messageLineEdit->text().trimmed().toUtf8();
+}
+
+//--------------------------------------------------------------------------
+
+bool MainWindow::sendCurrentDatagram_()
+{
+    return clientController_->sendDatagram(createDatagram_(),
+                                           destinationAddress_(),
+                                           destinationPort_());
 }
 
 //--------------------------------------------------------------------------

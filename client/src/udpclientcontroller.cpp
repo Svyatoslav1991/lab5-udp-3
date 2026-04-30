@@ -7,10 +7,10 @@ UdpClientController::UdpClientController(QObject* parent)
     : QObject(parent)
     , socket_(new QUdpSocket(this))
     , timer_(new QTimer(this))
-    , storedPort_(0)
+    , periodicPort_(0)
 {
     connect(timer_, &QTimer::timeout,
-            this, &UdpClientController::sendStoredDatagram_);
+            this, &UdpClientController::sendNextPeriodicDatagram_);
 }
 
 //--------------------------------------------------------------------------
@@ -19,18 +19,7 @@ bool UdpClientController::sendDatagram(const QByteArray& datagram,
                                        const QHostAddress& address,
                                        quint16 port)
 {
-    if (datagram.isEmpty()) {
-        emit errorOccurred(QStringLiteral("Нельзя отправить пустую дейтаграмму."));
-        return false;
-    }
-
-    if (address.isNull()) {
-        emit errorOccurred(QStringLiteral("Некорректный адрес получателя."));
-        return false;
-    }
-
-    if (port == 0) {
-        emit errorOccurred(QStringLiteral("Некорректный порт получателя."));
+    if (!validateSendingParams_(datagram, address, port)) {
         return false;
     }
 
@@ -48,21 +37,26 @@ bool UdpClientController::sendDatagram(const QByteArray& datagram,
 
 //--------------------------------------------------------------------------
 
-void UdpClientController::startPeriodicSending(const QByteArray& datagram,
+void UdpClientController::startPeriodicSending(DatagramFactory datagramFactory,
                                                const QHostAddress& address,
                                                quint16 port,
                                                int intervalMs)
 {
+    if (!datagramFactory) {
+        emit errorOccurred(QStringLiteral("Не задан источник данных для периодической отправки."));
+        return;
+    }
+
     if (intervalMs <= 0) {
         emit errorOccurred(QStringLiteral("Интервал отправки должен быть больше нуля."));
         return;
     }
 
-    storedDatagram_ = datagram;
-    storedAddress_ = address;
-    storedPort_ = port;
+    datagramFactory_ = std::move(datagramFactory);
+    periodicAddress_ = address;
+    periodicPort_ = port;
 
-    if (sendDatagram(storedDatagram_, storedAddress_, storedPort_)) {
+    if (sendDatagram(datagramFactory_(), periodicAddress_, periodicPort_)) {
         timer_->start(intervalMs);
     }
 }
@@ -83,7 +77,37 @@ bool UdpClientController::isPeriodicSendingActive() const
 
 //--------------------------------------------------------------------------
 
-void UdpClientController::sendStoredDatagram_()
+void UdpClientController::sendNextPeriodicDatagram_()
 {
-    sendDatagram(storedDatagram_, storedAddress_, storedPort_);
+    if (!datagramFactory_) {
+        emit errorOccurred(QStringLiteral("Не задан источник данных для периодической отправки."));
+        stopPeriodicSending();
+        return;
+    }
+
+    sendDatagram(datagramFactory_(), periodicAddress_, periodicPort_);
+}
+
+//--------------------------------------------------------------------------
+
+bool UdpClientController::validateSendingParams_(const QByteArray& datagram,
+                                                 const QHostAddress& address,
+                                                 quint16 port)
+{
+    if (datagram.isEmpty()) {
+        emit errorOccurred(QStringLiteral("Нельзя отправить пустую дейтаграмму."));
+        return false;
+    }
+
+    if (address.isNull()) {
+        emit errorOccurred(QStringLiteral("Некорректный адрес получателя."));
+        return false;
+    }
+
+    if (port == 0) {
+        emit errorOccurred(QStringLiteral("Некорректный порт получателя."));
+        return false;
+    }
+
+    return true;
 }

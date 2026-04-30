@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QHostAddress>
+#include <QByteArray>
+#include <QString>
 
 class UdpClientController;
 
@@ -91,6 +93,12 @@ private:
      * \return Данные дейтаграммы.
      */
     QByteArray createDatagram_() const;
+
+    /*!
+     * \brief Отправляет текущую дейтаграмму по параметрам из интерфейса.
+     * \return true, если отправка была успешно инициирована.
+     */
+    bool sendCurrentDatagram_();
 
     /*!
      * \brief Считывает адрес получателя из интерфейса.

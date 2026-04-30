@@ -1,9 +1,12 @@
 #ifndef UDPCLIENTCONTROLLER_H
 #define UDPCLIENTCONTROLLER_H
 
-#include <QObject>
+#include <QByteArray>
 #include <QHostAddress>
+#include <QObject>
 #include <QString>
+
+#include <functional>
 
 class QTimer;
 class QUdpSocket;
@@ -18,13 +21,22 @@ class QUdpSocket;
  * - периодическую отправку дейтаграмм по таймеру;
  * - уведомление GUI об успешной отправке или ошибке.
  *
- * Класс не зависит от MainWindow и не управляет элементами интерфейса напрямую.
+ * Контроллер не зависит от MainWindow и не управляет элементами интерфейса.
  */
 class UdpClientController : public QObject
 {
     Q_OBJECT
 
 public:
+    /*!
+     * \brief Функция, формирующая данные очередной UDP-дейтаграммы.
+     *
+     * \details
+     * Используется при периодической отправке. Это позволяет при каждом
+     * срабатывании таймера получать новые данные, например новое текущее время.
+     */
+    using DatagramFactory = std::function<QByteArray()>;
+
     /*!
      * \brief Создаёт контроллер UDP-клиента.
      * \param parent Родительский QObject.
@@ -44,12 +56,12 @@ public:
 
     /*!
      * \brief Запускает периодическую отправку UDP-дейтаграмм.
-     * \param datagram Данные дейтаграммы.
+     * \param datagramFactory Функция формирования очередной дейтаграммы.
      * \param address Адрес получателя.
      * \param port Порт получателя.
      * \param intervalMs Интервал отправки в миллисекундах.
      */
-    void startPeriodicSending(const QByteArray& datagram,
+    void startPeriodicSending(DatagramFactory datagramFactory,
                               const QHostAddress& address,
                               quint16 port,
                               int intervalMs);
@@ -86,17 +98,29 @@ signals:
 
 private slots:
     /*!
-     * \brief Отправляет сохранённую дейтаграмму по таймеру.
+     * \brief Отправляет очередную дейтаграмму по таймеру.
      */
-    void sendStoredDatagram_();
+    void sendNextPeriodicDatagram_();
+
+private:
+    /*!
+     * \brief Проверяет параметры отправки.
+     * \param datagram Данные дейтаграммы.
+     * \param address Адрес получателя.
+     * \param port Порт получателя.
+     * \return true, если параметры корректны.
+     */
+    bool validateSendingParams_(const QByteArray& datagram,
+                                const QHostAddress& address,
+                                quint16 port);
 
 private:
     QUdpSocket* socket_;
     QTimer* timer_;
 
-    QByteArray storedDatagram_;
-    QHostAddress storedAddress_;
-    quint16 storedPort_;
+    DatagramFactory datagramFactory_;
+    QHostAddress periodicAddress_;
+    quint16 periodicPort_;
 };
 
 #endif // UDPCLIENTCONTROLLER_H
