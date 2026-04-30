@@ -1,7 +1,10 @@
 set(CLIENT_SOURCES
     include/mainwindow.h
+    include/udpclientcontroller.h
+
     src/main.cpp
     src/mainwindow.cpp
+    src/udpclientcontroller.cpp
     src/mainwindow.ui
 )
 
@@ -24,6 +27,7 @@ target_include_directories(udp_client
 target_link_libraries(udp_client
     PRIVATE
         Qt${QT_VERSION_MAJOR}::Widgets
+        Qt${QT_VERSION_MAJOR}::Network
         udp_core
 )
 
