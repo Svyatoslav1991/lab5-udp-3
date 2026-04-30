@@ -1,7 +1,10 @@
 set(SERVER_SOURCES
     include/mainwindow.h
+    include/udpservercontroller.h
+
     src/main.cpp
     src/mainwindow.cpp
+    src/udpservercontroller.cpp
     src/mainwindow.ui
 )
 
@@ -24,6 +27,7 @@ target_include_directories(udp_server
 target_link_libraries(udp_server
     PRIVATE
         Qt${QT_VERSION_MAJOR}::Widgets
+        Qt${QT_VERSION_MAJOR}::Network
         udp_core
 )
 
