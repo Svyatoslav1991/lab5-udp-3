@@ -30,3 +30,14 @@ add_udp_test(test_udpclientcontroller
     ${CMAKE_SOURCE_DIR}/client/include/udpclientcontroller.h
     ${CMAKE_SOURCE_DIR}/client/src/udpclientcontroller.cpp
 )
+
+add_udp_test(test_client_mainwindow
+    test_client_mainwindow.cpp
+
+    ${CMAKE_SOURCE_DIR}/client/include/mainwindow.h
+    ${CMAKE_SOURCE_DIR}/client/src/mainwindow.cpp
+    ${CMAKE_SOURCE_DIR}/client/src/mainwindow.ui
+
+    ${CMAKE_SOURCE_DIR}/client/include/udpclientcontroller.h
+    ${CMAKE_SOURCE_DIR}/client/src/udpclientcontroller.cpp
+)
