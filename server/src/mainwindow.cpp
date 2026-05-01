@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTextEdit>
+#include <QCloseEvent>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -17,6 +18,7 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui->setupUi(this);
 
+    loadSettings_();
     setupConnections_();
     setServerUiActive_(false);
 }
@@ -69,6 +71,7 @@ void MainWindow::onStopServerClicked_()
 
 void MainWindow::onReceivingStarted_(const QHostAddress& address, quint16 port)
 {
+    saveSettings_();
     setServerUiActive_(true);
 
     appendLog_(QStringLiteral("UDP-сервер запущен на %1:%2.")
@@ -143,4 +146,40 @@ void MainWindow::appendLog_(const QString& message)
             .toString(QStringLiteral("hh:mm:ss"));
 
     ui->logTextEdit->append(QStringLiteral("[%1] %2").arg(timestamp, message));
+}
+
+//--------------------------------------------------------------------------
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    saveSettings_();
+    QMainWindow::closeEvent(event);
+}
+
+//--------------------------------------------------------------------------
+
+void MainWindow::loadSettings_()
+{
+    const UdpServerSettings settings = appSettings_.loadServerSettings();
+
+    ui->addressLineEdit->setText(settings.bindAddress);
+    ui->portSpinBox->setValue(settings.bindPort);
+}
+
+//--------------------------------------------------------------------------
+
+void MainWindow::saveSettings_() const
+{
+    appSettings_.saveServerSettings(collectSettings_());
+}
+
+//--------------------------------------------------------------------------
+
+UdpServerSettings MainWindow::collectSettings_() const
+{
+    UdpServerSettings settings;
+    settings.bindAddress = ui->addressLineEdit->text().trimmed();
+    settings.bindPort = static_cast<quint16>(ui->portSpinBox->value());
+
+    return settings;
 }

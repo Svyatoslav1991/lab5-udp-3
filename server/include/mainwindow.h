@@ -2,12 +2,14 @@
 #define MAINWINDOW_H
 
 #include "udpdatagraminfo.h"
+#include "appsettings.h"
 
 #include <QHostAddress>
 #include <QMainWindow>
 #include <QString>
 
 class UdpServerController;
+class QCloseEvent;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -43,6 +45,13 @@ public:
      * \brief Уничтожает главное окно UDP-сервера.
      */
     ~MainWindow() override;
+
+protected:
+    /*!
+     * \brief Сохраняет настройки сервера при закрытии окна.
+     * \param event Событие закрытия окна.
+     */
+    void closeEvent(QCloseEvent* event) override;
 
 private slots:
     /*!
@@ -109,9 +118,26 @@ private:
      */
     void appendLog_(const QString& message);
 
+    /*!
+     * \brief Загружает сохранённые настройки сервера в интерфейс.
+     */
+    void loadSettings_();
+
+    /*!
+     * \brief Сохраняет текущие настройки сервера из интерфейса.
+     */
+    void saveSettings_() const;
+
+    /*!
+     * \brief Собирает настройки сервера из текущего состояния интерфейса.
+     * \return Настройки сервера.
+     */
+    UdpServerSettings collectSettings_() const;
+
 private:
     Ui::MainWindow* ui;
     UdpServerController* serverController_;
+    AppSettings appSettings_;
 };
 
 #endif // MAINWINDOW_H

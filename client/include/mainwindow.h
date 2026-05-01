@@ -6,7 +6,10 @@
 #include <QByteArray>
 #include <QString>
 
+#include "appsettings.h"
+
 class UdpClientController;
+class QCloseEvent;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -41,6 +44,13 @@ public:
      * \brief Уничтожает главное окно UDP-клиента.
      */
     ~MainWindow() override;
+
+protected:
+    /*!
+     * \brief Сохраняет настройки клиента при закрытии окна.
+     * \param event Событие закрытия окна.
+     */
+    void closeEvent(QCloseEvent* event) override;
 
 private slots:
     /*!
@@ -81,6 +91,22 @@ private slots:
      * \param message Текст ошибки.
      */
     void onClientError_(const QString& message);
+
+    /*!
+     * \brief Загружает сохранённые настройки клиента в интерфейс.
+     */
+    void loadSettings_();
+
+    /*!
+     * \brief Сохраняет текущие настройки клиента из интерфейса.
+     */
+    void saveSettings_() const;
+
+    /*!
+     * \brief Собирает настройки клиента из текущего состояния интерфейса.
+     * \return Настройки клиента.
+     */
+    UdpClientSettings collectSettings_() const;
 
 private:
     /*!
@@ -133,6 +159,7 @@ private:
 private:
     Ui::MainWindow* ui;
     UdpClientController* clientController_;
+    AppSettings appSettings_;
 };
 
 #endif // MAINWINDOW_H

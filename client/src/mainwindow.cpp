@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTextEdit>
+#include <QCloseEvent>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -17,6 +18,7 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui->setupUi(this);
 
+    loadSettings_();
     setupConnections_();
     onCurrentTimeModeChanged_(ui->currentTimeCheckBox->isChecked());
 }
@@ -55,7 +57,9 @@ void MainWindow::setupConnections_()
 
 void MainWindow::onSendOnceClicked_()
 {
-    sendCurrentDatagram_();
+    if (sendCurrentDatagram_()) {
+        saveSettings_();
+    }
 }
 
 //--------------------------------------------------------------------------
@@ -63,14 +67,15 @@ void MainWindow::onSendOnceClicked_()
 void MainWindow::onStartClicked_()
 {
     clientController_->startPeriodicSending(
-        [this]() {
-            return createDatagram_();
-        },
-        destinationAddress_(),
-        destinationPort_(),
-        sendingIntervalMs_());
+                [this]() {
+        return createDatagram_();
+    },
+    destinationAddress_(),
+    destinationPort_(),
+    sendingIntervalMs_());
 
     if (clientController_->isPeriodicSendingActive()) {
+        saveSettings_();
         setPeriodicSendingUiActive_(true);
         appendLog_(QStringLiteral("Периодическая отправка запущена."));
     }
@@ -183,4 +188,46 @@ void MainWindow::appendLog_(const QString& message)
             .toString(QStringLiteral("hh:mm:ss"));
 
     ui->logTextEdit->append(QStringLiteral("[%1] %2").arg(timestamp, message));
+}
+
+//--------------------------------------------------------------------------
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    saveSettings_();
+    QMainWindow::closeEvent(event);
+}
+
+//--------------------------------------------------------------------------
+
+void MainWindow::loadSettings_()
+{
+    const UdpClientSettings settings = appSettings_.loadClientSettings();
+
+    ui->addressLineEdit->setText(settings.address);
+    ui->portSpinBox->setValue(settings.port);
+    ui->intervalSpinBox->setValue(settings.intervalMs);
+    ui->currentTimeCheckBox->setChecked(settings.useCurrentTime);
+    ui->messageLineEdit->setText(settings.message);
+}
+
+//--------------------------------------------------------------------------
+
+void MainWindow::saveSettings_() const
+{
+    appSettings_.saveClientSettings(collectSettings_());
+}
+
+//--------------------------------------------------------------------------
+
+UdpClientSettings MainWindow::collectSettings_() const
+{
+    UdpClientSettings settings;
+    settings.address = ui->addressLineEdit->text().trimmed();
+    settings.port = static_cast<quint16>(ui->portSpinBox->value());
+    settings.intervalMs = ui->intervalSpinBox->value();
+    settings.useCurrentTime = ui->currentTimeCheckBox->isChecked();
+    settings.message = ui->messageLineEdit->text();
+
+    return settings;
 }
