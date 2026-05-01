@@ -63,6 +63,8 @@ struct UdpServerSettings
     UdpServerSettings();
 };
 
+class QSettings;
+
 /*!
  * \class AppSettings
  * \brief Сервис чтения и сохранения настроек UDP-приложений.
@@ -74,6 +76,21 @@ struct UdpServerSettings
 class AppSettings
 {
 public:
+    /*!
+     * \brief Создаёт сервис настроек.
+     *
+     * \details
+     * По умолчанию используются реальные настройки лабораторного приложения.
+     * Для unit-тестов можно передать отдельные имена организации и приложения,
+     * чтобы не затрагивать пользовательские настройки.
+     *
+     * \param organizationName Имя организации для QSettings.
+     * \param applicationName Имя приложения для QSettings.
+     */
+    explicit AppSettings(
+            const QString& organizationName = QStringLiteral("Myshkovskiy Svyatoslav"),
+            const QString& applicationName = QStringLiteral("Lab5Udp"));
+
     /*!
      * \brief Загружает настройки UDP-клиента.
      * \return Настройки клиента.
@@ -97,6 +114,17 @@ public:
      * \param settings Настройки сервера.
      */
     void saveServerSettings(const UdpServerSettings& settings) const;
+
+private:
+    /*!
+     * \brief Создаёт объект QSettings с текущими именами организации и приложения.
+     * \return Объект QSettings.
+     */
+    QSettings createSettings_() const;
+
+private:
+    QString organizationName_;
+    QString applicationName_;
 };
 
 #endif // APPSETTINGS_H

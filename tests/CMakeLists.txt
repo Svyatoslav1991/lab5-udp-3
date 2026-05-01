@@ -19,3 +19,7 @@ function(add_udp_test TARGET_NAME)
 
     add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
 endfunction()
+
+add_udp_test(test_appsettings
+    test_appsettings.cpp
+)

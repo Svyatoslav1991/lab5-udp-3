@@ -14,14 +14,6 @@ QString defaultAddress()
 
 //--------------------------------------------------------------------------
 
-QSettings createSettings()
-{
-    return QSettings(QStringLiteral("Myshkovskiy Svyatoslav"),
-                     QStringLiteral("Lab5Udp"));
-}
-
-//--------------------------------------------------------------------------
-
 quint16 readPort(const QSettings& settings,
                  const QString& key,
                  quint16 defaultValue)
@@ -68,9 +60,18 @@ UdpServerSettings::UdpServerSettings()
 
 //--------------------------------------------------------------------------
 
+AppSettings::AppSettings(const QString& organizationName,
+                         const QString& applicationName)
+    : organizationName_(organizationName)
+    , applicationName_(applicationName)
+{
+}
+
+//--------------------------------------------------------------------------
+
 UdpClientSettings AppSettings::loadClientSettings() const
 {
-    const QSettings settings = createSettings();
+    const QSettings settings = createSettings_();
 
     UdpClientSettings result;
     result.address = settings.value(QStringLiteral("client/address"),
@@ -97,7 +98,7 @@ UdpClientSettings AppSettings::loadClientSettings() const
 
 void AppSettings::saveClientSettings(const UdpClientSettings& settings) const
 {
-    QSettings storage = createSettings();
+    QSettings storage = createSettings_();
 
     storage.setValue(QStringLiteral("client/address"), settings.address);
     storage.setValue(QStringLiteral("client/port"), settings.port);
@@ -112,7 +113,7 @@ void AppSettings::saveClientSettings(const UdpClientSettings& settings) const
 
 UdpServerSettings AppSettings::loadServerSettings() const
 {
-    const QSettings settings = createSettings();
+    const QSettings settings = createSettings_();
 
     UdpServerSettings result;
     result.bindAddress = settings.value(QStringLiteral("server/bindAddress"),
@@ -129,10 +130,17 @@ UdpServerSettings AppSettings::loadServerSettings() const
 
 void AppSettings::saveServerSettings(const UdpServerSettings& settings) const
 {
-    QSettings storage = createSettings();
+    QSettings storage = createSettings_();
 
     storage.setValue(QStringLiteral("server/bindAddress"), settings.bindAddress);
     storage.setValue(QStringLiteral("server/bindPort"), settings.bindPort);
 
     storage.sync();
+}
+
+//--------------------------------------------------------------------------
+
+QSettings AppSettings::createSettings_() const
+{
+    return QSettings(organizationName_, applicationName_);
 }
