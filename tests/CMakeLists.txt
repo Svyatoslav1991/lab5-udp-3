@@ -48,3 +48,19 @@ add_udp_test(test_udpservercontroller
     ${CMAKE_SOURCE_DIR}/server/include/udpservercontroller.h
     ${CMAKE_SOURCE_DIR}/server/src/udpservercontroller.cpp
 )
+
+add_udp_test(test_server_mainwindow
+    test_server_mainwindow.cpp
+
+    ${CMAKE_SOURCE_DIR}/server/include/mainwindow.h
+    ${CMAKE_SOURCE_DIR}/server/src/mainwindow.cpp
+    ${CMAKE_SOURCE_DIR}/server/src/mainwindow.ui
+
+    ${CMAKE_SOURCE_DIR}/server/include/udpservercontroller.h
+    ${CMAKE_SOURCE_DIR}/server/src/udpservercontroller.cpp
+)
+
+target_include_directories(test_server_mainwindow
+    BEFORE PRIVATE
+        ${CMAKE_SOURCE_DIR}/server/include
+)
