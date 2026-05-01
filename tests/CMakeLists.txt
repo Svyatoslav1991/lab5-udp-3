@@ -7,6 +7,7 @@ function(add_udp_test TARGET_NAME)
         PRIVATE
             Qt${QT_VERSION_MAJOR}::Test
             Qt${QT_VERSION_MAJOR}::Widgets
+            Qt${QT_VERSION_MAJOR}::Network
             udp_core
     )
 
@@ -22,4 +23,10 @@ endfunction()
 
 add_udp_test(test_appsettings
     test_appsettings.cpp
+)
+
+add_udp_test(test_udpclientcontroller
+    test_udpclientcontroller.cpp
+    ${CMAKE_SOURCE_DIR}/client/include/udpclientcontroller.h
+    ${CMAKE_SOURCE_DIR}/client/src/udpclientcontroller.cpp
 )
